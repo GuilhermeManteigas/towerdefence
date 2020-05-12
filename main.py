@@ -1,6 +1,9 @@
 import pygame
 import math
+import threading
+import time
 from bullet import Bullet
+from tower import Tower
 
 pygame.init()
 
@@ -19,23 +22,35 @@ closed = False
 personImg = pygame.image.load('player.png')
 bulletImg = pygame.image.load('bullet.png')
 towerplaceholderImg = pygame.image.load('towerplaceholder.png')
+cursorImg = pygame.image.load('cursor.png')
 
 
 ###########################################
 #######         Map creation        #######
 ###########################################
+tower_placeholder_list = []
 
-x = int(display_width/4)
-y = int(display_height/3)
+px = int(display_width/4)
+py = int(display_height/4)
+tower = Tower(towerplaceholderImg, px, py)
+tower_placeholder_list.append(tower)
 
-x = int(display_width/4)
-y = int(display_height - display_height/3)
+px = int(display_width/4)
+py = int(display_height - display_height/4)
+tower = Tower(towerplaceholderImg, px, py)
+tower_placeholder_list.append(tower)
 
-x = int(display_width/3)
-y = int(display_height/4)
+px = int(display_width - display_width/4)
+py = int(display_height/4)
+tower = Tower(towerplaceholderImg, px, py)
+tower_placeholder_list.append(tower)
 
-x = int(display_width - display_width/3)
-y = int(display_height/4)
+px = int(display_width - display_width/4)
+py = int(display_height - display_height/4)
+tower = Tower(towerplaceholderImg, px, py)
+tower_placeholder_list.append(tower)
+
+
 
 
 ###########################################
@@ -73,37 +88,73 @@ def update_bullets():
             b.posy = b.posy + (b.speed * (-math.cos(b.angle)))
             gameDisplay.blit(b.image, (b.posx, b.posy))
         else:
-            print("bullet deleted")
             bullet_list.pop(bullet_list.index(b))
 
+
+def update_placeholder_towers():
+    for t in tower_placeholder_list:
+        rect = t.image.get_rect()
+        rect.center = t.posx, t.posy
+        gameDisplay.blit(t.image, rect)
+
+
+def update_screen():
+    gameDisplay.fill(white)
+    person(x, y)
+    update_bullets()
+    update_placeholder_towers()
+
+button_pressed = False
+
+def auto_shoot():
+    while button_pressed:
+        bullet = Bullet(rotate_image_by_angle(bulletImg, mouse_angle(x, y)), x, y, mouse_angle(x, y), 5)
+        bullet_list.append(bullet)
+        print("a")
+        time.sleep(0.1)
 
 x = int(display_width * 0.5)
 y = int(display_height * 0.5)
 bullet_list = []
 
-while not closed:
 
+while not closed:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             closed = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            bullet = Bullet(rotate_image_by_angle(bulletImg, mouse_angle(x, y)), x, y, mouse_angle(x, y), 5)
-            bullet_list.append(bullet)
-            print(math.degrees(mouse_angle(x, y)) % 360)
+        elif event.type == pygame.MOUSEBUTTONUP:
+            button_pressed = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and not button_pressed:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            notTower = True
+            for t in tower_placeholder_list:
+                if t.posx - t.tower_width/2 < mouse_x < t.posx + t.tower_width/2 and t.posy - t.tower_height/2 < mouse_y < t.posy + t.tower_height/2:
+                    t.levelup()
+                    notTower = False
+                    break
+            if notTower:
+                button_pressed = True
+                bullet = Bullet(rotate_image_by_angle(bulletImg, mouse_angle(x, y)), x, y, mouse_angle(x, y), 5)
+                bullet_list.append(bullet)
+                btndown = threading.Thread(target=auto_shoot)
+                btndown.start()
+                #print(math.degrees(mouse_angle(x, y)) % 360)
+
 
 
 
         #print(event)
 
 
-    gameDisplay.fill(white)
-    person(x, y)
-    update_bullets()
+    update_screen()
 
-
+    pygame.mouse.set_visible(False)
+    pointerImg_rect = cursorImg.get_rect()
+    pointerImg_rect.center = pygame.mouse.get_pos()
+    gameDisplay.blit(cursorImg, pygame.mouse.get_pos())
 
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(120)
 
 
 pygame.quit()
