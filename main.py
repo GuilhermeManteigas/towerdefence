@@ -18,6 +18,27 @@ clock = pygame.time.Clock()
 closed = False
 personImg = pygame.image.load('player.png')
 bulletImg = pygame.image.load('bullet.png')
+towerplaceholderImg = pygame.image.load('towerplaceholder.png')
+
+
+###########################################
+#######         Map creation        #######
+###########################################
+
+x = int(display_width/4)
+y = int(display_height/3)
+
+x = int(display_width/4)
+y = int(display_height - display_height/3)
+
+x = int(display_width/3)
+y = int(display_height/4)
+
+x = int(display_width - display_width/3)
+y = int(display_height/4)
+
+
+###########################################
 
 
 def mouse_angle(x, y):
@@ -47,9 +68,13 @@ def person(x, y):
 
 def update_bullets():
     for b in bullet_list:
-        b.posx = b.posx + (b.speed * (-math.sin(b.angle)))
-        b.posy = b.posy + (b.speed * (-math.cos(b.angle)))
-        gameDisplay.blit(b.image, (b.posx, b.posy))
+        if 0 < b.posx < display_width and 0 < b.posy < display_height:
+            b.posx = b.posx + (b.speed * (-math.sin(b.angle)))
+            b.posy = b.posy + (b.speed * (-math.cos(b.angle)))
+            gameDisplay.blit(b.image, (b.posx, b.posy))
+        else:
+            print("bullet deleted")
+            bullet_list.pop(bullet_list.index(b))
 
 
 x = int(display_width * 0.5)
@@ -62,7 +87,7 @@ while not closed:
         if event.type == pygame.QUIT:
             closed = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            bullet = Bullet(rotate_image_by_angle(bulletImg, mouse_angle(x, y)), x, y, mouse_angle(x, y), 2)
+            bullet = Bullet(rotate_image_by_angle(bulletImg, mouse_angle(x, y)), x, y, mouse_angle(x, y), 5)
             bullet_list.append(bullet)
             print(math.degrees(mouse_angle(x, y)) % 360)
 
