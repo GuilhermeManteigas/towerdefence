@@ -5,12 +5,15 @@ import time
 from bullet import Bullet
 from tower import Tower
 from enemy import Enemy
+import cProfile
 
 pygame.init()
 
 monitor_info = pygame.display.Info()
 display_width = 640
 display_height = 360
+upscale_rez_w = 640
+upscale_rez_h = 360
 FPS = 120
 scale_multiplier = 1
 game_tick = 0.01
@@ -31,6 +34,13 @@ bulletImg = pygame.image.load('bullet.png')
 towerplaceholderImg = pygame.image.load('towerplaceholder.png')
 towerplaceholdermouseoverImg = pygame.image.load('towerplaceholder_mouseover.png')
 cursorImg = pygame.image.load('cursor.png')
+
+
+window = pygame.display.set_mode((display_width, display_height))
+
+if monitor_info.current_w == 1920 and monitor_info.current_h == 1080:
+    False
+    #scale_multiplier = 3
 
 
 ###########################################
@@ -89,7 +99,7 @@ def update_bullets_position():
             if 0 < b.posx < display_width and 0 < b.posy < display_height:
                 b.posx = b.posx + (b.speed * (-math.sin(b.angle)))
                 b.posy = b.posy + (b.speed * (-math.cos(b.angle)))
-                b.rect.center = b.posx, b.posy
+                b.rect.center = int(b.posx), int(b.posy)
             else:
                 bullet_list.pop(bullet_list.index(b))
         time.sleep(game_tick)
@@ -102,7 +112,6 @@ def detect_bullet_colision():
                 if pygame.sprite.collide_rect(b, e):
                     e.health -= b.damage
                     bullet_list.pop(index)
-                    print("hit " + str(b.id))
                     if e.health <= 0:
                         enemy_list.pop(enemy_list.index(e))
                 break
@@ -112,7 +121,7 @@ def detect_bullet_colision():
 def update_bullets():
     for b in bullet_list:
         if 0 < b.posx < display_width and 0 < b.posy < display_height:
-            gameDisplay.blit(b.image, (b.posx, b.posy))
+            gameDisplay.blit(b.image, (int(b.posx), int(b.posy)))
         else:
             bullet_list.pop(bullet_list.index(b))
 
@@ -162,10 +171,35 @@ def mouse_pointer():
     gameDisplay.blit(cursorImg, pointerImg_rect)
 
 
+def upscale_processing(w,h,window):
+    frame = pygame.transform.scale(gameDisplay, (w, h))
+    window.blit(frame, frame.get_rect())
+    pygame.display.flip()
+
+def change_resolution():
+    upscale_rez_w = int(640 * scale_multiplier)
+    upscale_rez_h = int(360 * scale_multiplier)
+    print(upscale_rez_w)
+    if upscale_rez_w == monitor_info.current_w:
+        window = pygame.display.set_mode((upscale_rez_w, upscale_rez_h), pygame.FULLSCREEN)
+    else:
+        window = pygame.display.set_mode((upscale_rez_w, upscale_rez_h))
+
 def upscale_screen():
+    show_fps(gameDisplay, clock)
+    #mouse = threading.Thread(target=mouse_pointer)
+    #mouse.start()
+    mouse_pointer()
+    update_screen()
     w = int(640 * scale_multiplier)
     h = int(360 * scale_multiplier)
-    window = pygame.display.set_mode((w, h))
+    #if w == monitor_info.current_w:
+        #window = pygame.display.set_mode((w, h), pygame.FULLSCREEN)
+    #else:
+        #window = pygame.display.set_mode((w, h))
+    #upscale = threading.Thread(target=upscale_processing, args=(w,h,window,))
+    #upscale.start()
+    #print(upscale_rez_w)
     frame = pygame.transform.scale(gameDisplay, (w, h))
     window.blit(frame, frame.get_rect())
     pygame.display.flip()
@@ -198,7 +232,7 @@ def update_enemies_position():
             if e.posx != (display_width/2) or e.posy != display_height/2:
                 e.posx = e.posx + (e.speed * (-math.sin(math.atan2(e.posx - x, e.posy - y))))
                 e.posy = e.posy + (e.speed * (-math.cos(math.atan2(e.posx - x, e.posy - y))))
-                e.rect.center = e.posx, e.posy
+                e.rect.center = int(e.posx), int(e.posy)
             else:
                 enemy_list.pop(enemy_list.index(e))
         time.sleep(game_tick)
@@ -208,7 +242,7 @@ def update_enemies():
     #print("update image")
     for e in enemy_list:
         if e.posx != display_width/2 or e.posy != display_height/2:
-            gameDisplay.blit(e.image, (e.posx, e.posy))
+            gameDisplay.blit(e.image, (int(e.posx), int(e.posy)))
 
 
 #threading.Thread(target=update_bullets_position()).start()
@@ -223,6 +257,8 @@ enemy_creator.start()
 
 fullscreen = False
 
+scale_multiplier = 3
+change_resolution()
 while not closed:
     #print(len(bullet_list))
     gameDisplay.fill(white)
@@ -244,7 +280,6 @@ while not closed:
                 button_pressed = True
                 bullet = Bullet(rotate_image_by_angle(bulletImg, mouse_angle(x, y)), x, y, mouse_angle(x, y), 5)
                 bullet_list.append(bullet)
-                print("bc")
                 btndown = threading.Thread(target=auto_shoot)
                 btndown.start()
                 #print(math.degrees(mouse_angle(x, y)) % 360)
@@ -264,12 +299,16 @@ while not closed:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_1:
                 scale_multiplier = 2
+                change_resolution()
             if event.key == pygame.K_2:
                 scale_multiplier = 2.4
+                change_resolution()
             if event.key == pygame.K_3:
                 scale_multiplier = 2.5
+                change_resolution()
             if event.key == pygame.K_4:
                 scale_multiplier = 3
+                change_resolution()
 
 
 
@@ -278,21 +317,25 @@ while not closed:
         #print(event)
 
 
-    update_screen()
+    #update_screen()
 
 
 
 
-    mouse = threading.Thread(target=mouse_pointer)
-    mouse.start()
+    #mouse = threading.Thread(target=mouse_pointer)
+    #mouse.start()
 
 
-    show_fps(gameDisplay, clock)
+    #show_fps(gameDisplay, clock)
 
     #pygame.display.update()
-    upscale_screen()
 
+    upscale = threading.Thread(target=upscale_screen)
+    upscale.run()
+    #cProfile.run('upscale.run()')
+    #upscale_screen()
 
+    #clock.tick(5)
     clock.tick(FPS)
 
 
