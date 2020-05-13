@@ -20,7 +20,7 @@ class Tower:
     def levelup(self):
         if self.level == 0:
             self.image = pygame.image.load('tower.png')
-            self.tower_height = self.tower_height * 3
+            #self.tower_height = self.tower_height * 3
             self.level += 1
 
 

@@ -10,6 +10,7 @@ import cProfile
 pygame.init()
 
 monitor_info = pygame.display.Info()
+show_fps = True
 display_width = 640
 display_height = 360
 upscale_rez_w = 640
@@ -28,9 +29,18 @@ red = (255, 0, 0)
 
 clock = pygame.time.Clock()
 closed = False
+#############################################
 btnplay = pygame.image.load('btnplay.png')
 btnsettings = pygame.image.load('btnsettings.png')
 btnexit = pygame.image.load('btnexit.png')
+btnblank = pygame.image.load('btnblank.png')
+btnarrowright = pygame.image.load('btnarrowright.png')
+btnarrowleft = pygame.image.load('btnarrowleft.png')
+btnfpson = pygame.image.load('fpson.png')
+btnfpsoff = pygame.image.load('fpsoff.png')
+btnback = pygame.image.load('btnback.png')
+#############################################
+
 personImg = pygame.image.load('player.png')
 enemyImg = pygame.image.load('enemy.png')
 bulletImg = pygame.image.load('bullet.png')
@@ -277,6 +287,9 @@ def tower_search_enemy():
                             if math.sqrt(abs(int(x - closest.posx) ^ 2 + int(y - closest.posy) ^ 2)) > math.sqrt(abs(int(x - e.posx) ^ 2 + int(y - e.posy) ^ 2)):
                                 closest = e
 
+
+                    #t.image = rotate_image_by_angle(t.image, math.atan2(t.posx - closest.posx, t.posy - closest.posy))
+
                     bullet = Bullet(rotate_image_by_angle(t.ammunition, math.atan2(t.posx - closest.posx, t.posy - closest.posy)), t.posx, t.posy, math.atan2(t.posx - closest.posx, t.posy - closest.posy), 5)
                     bullet_list.append(bullet)
                     print("fired")
@@ -309,34 +322,141 @@ change_resolution()
 
 def create_menu():
     btplay = btnplay.get_rect()
-    btplay.center = (display_width,(display_height/9)*2)
+    btplay.center = (display_width/2,(display_height/9)*2)
     gameDisplay.blit(btnplay, btplay)
 
     btsettings = btnsettings.get_rect()
-    btsettings.center = (display_width, (display_height / 9) * 4)
+    btsettings.center = (display_width/2, (display_height / 9) * 4)
     gameDisplay.blit(btnsettings, btsettings)
 
     btexit = btnexit.get_rect()
-    btexit.center = (display_width, (display_height / 9) * 6)
+    btexit.center = (display_width/2, (display_height / 9) * 6)
     gameDisplay.blit(btnexit, btexit)
 
 
 while not menu:
 
+    gameDisplay.fill(white)
+
+    btplay = btnplay.get_rect()
+    btplay.center = (display_width / 2, (display_height / 9) * 2)
+    gameDisplay.blit(btnplay, btplay)
+
+    btsettings = btnsettings.get_rect()
+    btsettings.center = (display_width / 2, (display_height / 9) * 4)
+    gameDisplay.blit(btnsettings, btsettings)
+
+    btexit = btnexit.get_rect()
+    btexit.center = (display_width / 2, (display_height / 9) * 6)
+    gameDisplay.blit(btnexit, btexit)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             quit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mx, my = get_mouse_position()
+            #x, y = event.pos
+            #x = x * scale_multiplier
+            #y = y * scale_multiplier
+            if btplay.collidepoint(mx, my):
+                menu = True
+            if btsettings.collidepoint(mx, my):
+                settings_open = True
+                while settings_open:
+                    gameDisplay.fill(white)
 
-    gameDisplay.fill(white)
+                    mouse_pointer()
 
-    create_menu()
+                    btblank = btnblank.get_rect()
+                    btblank.center = (display_width / 2, (display_height / 9) * 2)
+                    gameDisplay.blit(btnblank, btblank)
 
-    frame = pygame.transform.scale(gameDisplay, (upscale_rez_w, upscale_rez_h))
+                    font = pygame.font.SysFont("Arial_Regular", 35)
+                    gameDisplay.blit(font.render(str(int(640 * scale_multiplier)) + ' X ' + str(int(360 * scale_multiplier)), True, (0, 0, 0)), ((display_width / 2)-67, ((display_height / 9) * 2)-11))
+                    btblank = btnblank.get_rect()
+                    btblank.center = (display_width / 2, (display_height / 9) * 2)
+
+
+                    btleft = btnarrowleft.get_rect()
+                    btleft.center = ((display_width / 2) - 100, (display_height / 9) * 2)
+                    gameDisplay.blit(btnarrowleft, btleft)
+
+                    btright = btnarrowright.get_rect()
+                    btright.center = ((display_width / 2) + 100, (display_height / 9) * 2)
+                    gameDisplay.blit(btnarrowright, btright)
+
+                    btback = btnback.get_rect()
+                    btback.center = (display_width / 2, (display_height / 9) * 6)
+                    gameDisplay.blit(btnback, btback)
+
+                    if show_fps:
+                        btfps = btnfpsoff.get_rect()
+                        btfps.center = (display_width / 2, (display_height / 9) * 4)
+                        gameDisplay.blit(btnfpsoff, btfps)
+                    else:
+                        btfps = btnfpson.get_rect()
+                        btfps.center = (display_width / 2, (display_height / 9) * 4)
+                        gameDisplay.blit(btnfpson, btfps)
+
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            quit()
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                            mx, my = get_mouse_position()
+                            #x, y = event.pos
+                            if btfps.collidepoint(mx, my):
+                                show_fps = not show_fps
+                            elif btback.collidepoint(mx, my):
+                                settings_open = False
+                            elif btleft.collidepoint(mx, my):
+                                if scale_multiplier == 3:
+                                    scale_multiplier = 2.5
+                                elif scale_multiplier == 2.5:
+                                    scale_multiplier = 2.4
+                                elif scale_multiplier == 2.4:
+                                    scale_multiplier = 2
+                                elif scale_multiplier == 2:
+                                    scale_multiplier = 1
+                                change_resolution()
+                            elif btright.collidepoint(mx, my):
+                                if scale_multiplier == 1:
+                                    scale_multiplier = 2
+                                elif scale_multiplier == 2:
+                                    scale_multiplier = 2.4
+                                elif scale_multiplier == 2.4:
+                                    scale_multiplier = 2.5
+                                elif scale_multiplier == 2.5:
+                                    scale_multiplier = 3
+                                change_resolution()
+
+
+                    w = int(640 * scale_multiplier)
+                    h = int(360 * scale_multiplier)
+
+                    frame = pygame.transform.scale(gameDisplay, (w, h))
+                    window.blit(frame, frame.get_rect())
+                    pygame.display.flip()
+
+                    clock.tick(FPS)
+
+            if btexit.collidepoint(mx, my):
+                pygame.quit()
+                quit()
+
+
+
+    #create_menu()
+
+    w = int(640 * scale_multiplier)
+    h = int(360 * scale_multiplier)
+
+    frame = pygame.transform.scale(gameDisplay, (w, h))
     window.blit(frame, frame.get_rect())
     pygame.display.flip()
 
-    pygame.display.update()
+    #pygame.display.update()
     clock.tick(FPS)
 
 while not closed:
