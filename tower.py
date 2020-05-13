@@ -1,4 +1,5 @@
 import pygame
+from enemy import Enemy
 
 class Tower:
     def __init__(self, image, posx, posy):
@@ -9,9 +10,10 @@ class Tower:
         self.level = 0
         self.tower_height = 25
         self.tower_width = 25
-        self.range = 100
+        self.range = 150
         self.fire_rate = 1
         self.mouseover = False
+        self.target = Enemy(self.image, 0, 0)
         #self.rect = self.image.get_rect()
         #self.rect = pygame.Rect(0, 0, self.range, self.range)
         #self.rect.center = self.posx, self.posy

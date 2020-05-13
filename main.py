@@ -2,6 +2,7 @@ import pygame
 import math
 import threading
 import time
+import random
 from bullet import Bullet
 from tower import Tower
 from enemy import Enemy
@@ -62,22 +63,22 @@ if monitor_info.current_w == 1920 and monitor_info.current_h == 1080:
 ###########################################
 tower_placeholder_list = []
 
-px = int(display_width/4)
+px = int(display_width/3)
 py = int(display_height/4)
 tower = Tower(towerplaceholderImg, px, py)
 tower_placeholder_list.append(tower)
 
-px = int(display_width/4)
+px = int(display_width/3)
 py = int(display_height - display_height/4)
 tower = Tower(towerplaceholderImg, px, py)
 tower_placeholder_list.append(tower)
 
-px = int(display_width - display_width/4)
+px = int(display_width - display_width/3)
 py = int(display_height/4)
 tower = Tower(towerplaceholderImg, px, py)
 tower_placeholder_list.append(tower)
 
-px = int(display_width - display_width/4)
+px = int(display_width - display_width/3)
 py = int(display_height - display_height/4)
 tower = Tower(towerplaceholderImg, px, py)
 tower_placeholder_list.append(tower)
@@ -147,20 +148,32 @@ def update_bullets():
 
 def update_placeholder_towers():
     for t in tower_placeholder_list:
-        rect = t.image.get_rect()
-        rect.center = t.posx, t.posy
-        gameDisplay.blit(t.image, rect)
-        if t.mouseover:
+        if t.level < 1:
+            rect = t.image.get_rect()
+            rect.center = t.posx, t.posy
+            gameDisplay.blit(t.image, rect)
+        elif t.mouseover:
             pygame.draw.circle(gameDisplay, red, (t.posx, t.posy), t.range, 1)
 
 
 def update_screen():
     person(x, y)
+    update_towers()
     update_bullets()
     update_enemies()
     update_placeholder_towers()
 
 button_pressed = False
+
+
+def update_towers():
+    for t in tower_placeholder_list:
+        if t.level > 0:
+            angle = math.atan2(t.posx - t.target.posx, t.posy - t.target.posy)
+            rect = t.image.get_rect()
+            rect.center = t.posx, t.posy
+            rot_image = rotate_image_by_angle(t.image, angle)
+            gameDisplay.blit(rot_image, rect)
 
 
 def auto_shoot():
@@ -174,12 +187,12 @@ x = int(display_width * 0.5)
 y = int(display_height * 0.5)
 bullet_list = []
 
-FPS_FONT = pygame.font.SysFont("Verdana", 20)
+FPS_FONT = pygame.font.SysFont("Verdana", 15)
 GOLDENROD = pygame.Color("goldenrod")
 
 
 def show_fps(window, clock):
-    fps_overlay = FPS_FONT.render(str(clock.get_fps()), True, GOLDENROD)
+    fps_overlay = FPS_FONT.render(str(clock.get_fps()), True, black)
     window.blit(fps_overlay, (0, 0))
 
 
@@ -240,10 +253,25 @@ def is_enemy_in_range():
 
 def create_enemy():
     while True:
-        #print("creating")
-        enemy = Enemy(enemyImg, display_width, display_height/2)
-        enemy_list.append(enemy)
-        time.sleep(game_tick*1000)
+        rand = random.randint(0, 4)
+        if rand == 1:
+            distance = random.randint(-50, 50)
+            enemy = Enemy(enemyImg, display_width, (display_height/2) + distance)
+            enemy_list.append(enemy)
+        elif rand == 2:
+            distance = random.randint(-50, 50)
+            enemy = Enemy(enemyImg, 0, (display_height/2) + distance)
+            enemy_list.append(enemy)
+        elif rand == 3:
+            distance = random.randint(-50, 50)
+            enemy = Enemy(enemyImg, (display_width/2) + distance, display_height)
+            enemy_list.append(enemy)
+        elif rand == 4:
+            distance = random.randint(-50, 50)
+            enemy = Enemy(enemyImg, (display_width/2) + distance, 0)
+            enemy_list.append(enemy)
+
+        time.sleep(game_tick*100)
 
 def update_enemies_position():
     while True:
@@ -266,9 +294,10 @@ def update_enemies():
 
 def tower_search_enemy():
     while True:
-        detected_list = []
+        #detected_list = []
         for t in tower_placeholder_list:
             if t.level > 0:
+                detected_list = []
                 for e in enemy_list:
                     print(e.posx)
                     print(e.posy)
@@ -287,12 +316,27 @@ def tower_search_enemy():
                             if math.sqrt(abs(int(x - closest.posx) ^ 2 + int(y - closest.posy) ^ 2)) > math.sqrt(abs(int(x - e.posx) ^ 2 + int(y - e.posy) ^ 2)):
                                 closest = e
 
-
+                    #angle = mouse_angle(t.posx, t.posy)
+                    #rot_image = rotate_image_by_angle(t.image, angle)
+                    #gameDisplay.blit(rot_image, (x, y))
                     #t.image = rotate_image_by_angle(t.image, math.atan2(t.posx - closest.posx, t.posy - closest.posy))
+                    #gameDisplay.blit(t.image, (t.posx, t.posy))
+                    t.target = closest
 
-                    bullet = Bullet(rotate_image_by_angle(t.ammunition, math.atan2(t.posx - closest.posx, t.posy - closest.posy)), t.posx, t.posy, math.atan2(t.posx - closest.posx, t.posy - closest.posy), 5)
+                    rect = t.image.get_rect()
+                    rect.center = t.posx, t.posy
+
+                    bullet = Bullet(rotate_image_by_angle(t.ammunition, math.atan2(t.posx - closest.posx, t.posy - closest.posy)), t.posx - 10, t.posy - 10, math.atan2(t.posx - closest.posx, t.posy - closest.posy), 5)
                     bullet_list.append(bullet)
-                    print("fired")
+
+                    #bullet = Bullet(
+                        #rotate_image_by_angle(t.ammunition, math.atan2(t.posx - closest.posx, t.posy - closest.posy)+0.9),
+                        #t.posx - 10, t.posy - 10, math.atan2(t.posx - closest.posx, t.posy - closest.posy)+0.9, 5)
+                    #bullet_list.append(bullet)
+                    #bullet = Bullet(
+                        #rotate_image_by_angle(t.ammunition, math.atan2(t.posx - closest.posx, t.posy - closest.posy)-0.9),
+                        #t.posx - 10, t.posy - 10, math.atan2(t.posx - closest.posx, t.posy - closest.posy)-0.9, 5)
+                    #bullet_list.append(bullet)
 
         # e.posx = e.posx + (e.speed * (-math.sin(math.atan2(e.posx - x, e.posy - y))))
         # e.posy = e.posy + (e.speed * (-math.cos(math.atan2(e.posx - x, e.posy - y))))

@@ -5,7 +5,7 @@ class Enemy:
         self.posx = posx
         self.posy = posy
         self.level = 0
-        self.health = 5
+        self.health = 2
         self.damage = 5
         self.speed = 0.5
         self.reward = 5
