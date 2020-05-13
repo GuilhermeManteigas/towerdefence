@@ -100,6 +100,8 @@ def update_bullets_position():
                 b.posx = b.posx + (b.speed * (-math.sin(b.angle)))
                 b.posy = b.posy + (b.speed * (-math.cos(b.angle)))
                 b.rect.center = int(b.posx), int(b.posy)
+                #print(b.posx)
+                #print((b.speed * (-math.sin(b.angle))))
             else:
                 bullet_list.pop(bullet_list.index(b))
         time.sleep(game_tick)
@@ -110,12 +112,15 @@ def detect_bullet_colision():
         for e in enemy_list:
             for index, b in enumerate(bullet_list):
                 if pygame.sprite.collide_rect(b, e):
+                    print(pygame.sprite.collide_rect(b, e))
                     e.health -= b.damage
                     bullet_list.pop(index)
                     if e.health <= 0:
                         enemy_list.pop(enemy_list.index(e))
                 break
+        #print("Done! list = " + str(len(bullet_list)))
         time.sleep(game_tick)
+
 
 
 def update_bullets():
@@ -180,10 +185,11 @@ def change_resolution():
     upscale_rez_w = int(640 * scale_multiplier)
     upscale_rez_h = int(360 * scale_multiplier)
     print(upscale_rez_w)
-    if upscale_rez_w == monitor_info.current_w:
-        window = pygame.display.set_mode((upscale_rez_w, upscale_rez_h), pygame.FULLSCREEN)
-    else:
-        window = pygame.display.set_mode((upscale_rez_w, upscale_rez_h))
+    window = pygame.display.set_mode((upscale_rez_w, upscale_rez_h))
+    #if upscale_rez_w == monitor_info.current_w:
+        #window = pygame.display.set_mode((upscale_rez_w, upscale_rez_h), pygame.FULLSCREEN)
+    #else:
+        #window = pygame.display.set_mode((upscale_rez_w, upscale_rez_h))
 
 def upscale_screen():
     show_fps(gameDisplay, clock)
@@ -244,6 +250,40 @@ def update_enemies():
         if e.posx != display_width/2 or e.posy != display_height/2:
             gameDisplay.blit(e.image, (int(e.posx), int(e.posy)))
 
+def tower_search_enemy():
+    while True:
+        detected_list = []
+        for t in tower_placeholder_list:
+            if t.level > 0:
+                for e in enemy_list:
+                    print(e.posx)
+                    print(e.posy)
+                    print(math.sqrt(abs(int(t.posx - e.posx) * int(t.posx - e.posx) + int(t.posy - e.posy) * int(t.posy - e.posy))))
+                    if math.sqrt(abs(int(t.posx - e.posx) * int(t.posx - e.posx) + int(t.posy - e.posy) * int(t.posy - e.posy))) <= t.range: #pygame.sprite.collide_rect(t, e):
+                        detected_list.append(e)
+                        #print("detected")
+                if len(detected_list) > 0:
+                    closest = detected_list[0]
+                    for idx, e in enumerate(detected_list):
+                        if idx > 0:
+                            #test = math.sqrt(-1)
+                            #one = math.sqrt(abs(int(x - closest.posx) ^ 2 + int(y - closest.posy) ^ 2))
+                            #two = math.sqrt(abs(int(x - e.posx) ^ 2 + int(y - e.posy) ^ 2))
+                            #three = one > two
+                            if math.sqrt(abs(int(x - closest.posx) ^ 2 + int(y - closest.posy) ^ 2)) > math.sqrt(abs(int(x - e.posx) ^ 2 + int(y - e.posy) ^ 2)):
+                                closest = e
+
+                    bullet = Bullet(rotate_image_by_angle(bulletImg, math.atan2(t.posx - closest.posx, t.posy - closest.posy)), t.posx, t.posy, math.atan2(t.posx - closest.posx, t.posy - closest.posy), 5)
+                    bullet_list.append(bullet)
+                    print("fired")
+
+        # e.posx = e.posx + (e.speed * (-math.sin(math.atan2(e.posx - x, e.posy - y))))
+        # e.posy = e.posy + (e.speed * (-math.cos(math.atan2(e.posx - x, e.posy - y))))
+        # e.rect.center = int(e.posx), int(e.posy)
+
+        time.sleep(1)
+
+
 
 #threading.Thread(target=update_bullets_position()).start()
 bullet_updates = threading.Thread(target=update_bullets_position)
@@ -254,10 +294,12 @@ enemy_updates = threading.Thread(target=update_enemies_position)
 enemy_updates.start()
 enemy_creator = threading.Thread(target=create_enemy)
 enemy_creator.start()
+tower_detection = threading.Thread(target=tower_search_enemy)
+tower_detection.start()
 
 fullscreen = False
 
-scale_multiplier = 3
+scale_multiplier = 1
 change_resolution()
 while not closed:
     #print(len(bullet_list))
@@ -332,6 +374,7 @@ while not closed:
 
     upscale = threading.Thread(target=upscale_screen)
     upscale.run()
+
     #cProfile.run('upscale.run()')
     #upscale_screen()
 

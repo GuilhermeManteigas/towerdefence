@@ -1,6 +1,5 @@
 import pygame
 
-
 class Tower:
     def __init__(self, image, posx, posy):
         self.image = image
@@ -10,7 +9,12 @@ class Tower:
         self.tower_height = 25
         self.tower_width = 25
         self.range = 100
+        self.fire_rate = 1
         self.mouseover = False
+        self.rect = self.image.get_rect()
+        self.rect = pygame.Rect(0, 0, self.range, self.range)
+        self.rect.center = self.posx, self.posy
+
 
     def levelup(self):
         if self.level == 0:
