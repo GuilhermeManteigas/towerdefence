@@ -5,6 +5,9 @@ class Enemy:
         self.posx = posx
         self.posy = posy
         self.level = 0
-        self.health = 100
+        self.health = 5
         self.damage = 5
+        self.speed = 0.5
+        self.rect = self.image.get_rect()
+        self.rect.center = self.posx, self.posy
 
