@@ -8,6 +8,7 @@ class Enemy:
         self.health = 5
         self.damage = 5
         self.speed = 0.5
+        self.reward = 5
         self.rect = self.image.get_rect()
         self.rect.center = self.posx, self.posy
 

@@ -28,9 +28,13 @@ red = (255, 0, 0)
 
 clock = pygame.time.Clock()
 closed = False
+btnplay = pygame.image.load('btnplay.png')
+btnsettings = pygame.image.load('btnsettings.png')
+btnexit = pygame.image.load('btnexit.png')
 personImg = pygame.image.load('player.png')
 enemyImg = pygame.image.load('enemy.png')
 bulletImg = pygame.image.load('bullet.png')
+arrowImg = pygame.image.load('arrow.png')
 towerplaceholderImg = pygame.image.load('towerplaceholder.png')
 towerplaceholdermouseoverImg = pygame.image.load('towerplaceholder_mouseover.png')
 cursorImg = pygame.image.load('cursor.png')
@@ -273,7 +277,7 @@ def tower_search_enemy():
                             if math.sqrt(abs(int(x - closest.posx) ^ 2 + int(y - closest.posy) ^ 2)) > math.sqrt(abs(int(x - e.posx) ^ 2 + int(y - e.posy) ^ 2)):
                                 closest = e
 
-                    bullet = Bullet(rotate_image_by_angle(bulletImg, math.atan2(t.posx - closest.posx, t.posy - closest.posy)), t.posx, t.posy, math.atan2(t.posx - closest.posx, t.posy - closest.posy), 5)
+                    bullet = Bullet(rotate_image_by_angle(t.ammunition, math.atan2(t.posx - closest.posx, t.posy - closest.posy)), t.posx, t.posy, math.atan2(t.posx - closest.posx, t.posy - closest.posy), 5)
                     bullet_list.append(bullet)
                     print("fired")
 
@@ -298,9 +302,43 @@ tower_detection = threading.Thread(target=tower_search_enemy)
 tower_detection.start()
 
 fullscreen = False
+menu = False
 
 scale_multiplier = 1
 change_resolution()
+
+def create_menu():
+    btplay = btnplay.get_rect()
+    btplay.center = (display_width,(display_height/9)*2)
+    gameDisplay.blit(btnplay, btplay)
+
+    btsettings = btnsettings.get_rect()
+    btsettings.center = (display_width, (display_height / 9) * 4)
+    gameDisplay.blit(btnsettings, btsettings)
+
+    btexit = btnexit.get_rect()
+    btexit.center = (display_width, (display_height / 9) * 6)
+    gameDisplay.blit(btnexit, btexit)
+
+
+while not menu:
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+    gameDisplay.fill(white)
+
+    create_menu()
+
+    frame = pygame.transform.scale(gameDisplay, (upscale_rez_w, upscale_rez_h))
+    window.blit(frame, frame.get_rect())
+    pygame.display.flip()
+
+    pygame.display.update()
+    clock.tick(FPS)
+
 while not closed:
     #print(len(bullet_list))
     gameDisplay.fill(white)
@@ -324,7 +362,6 @@ while not closed:
                 bullet_list.append(bullet)
                 btndown = threading.Thread(target=auto_shoot)
                 btndown.start()
-                #print(math.degrees(mouse_angle(x, y)) % 360)
         elif event.type == pygame.MOUSEMOTION:
             mouse_x, mouse_y = get_mouse_position()
             for t in tower_placeholder_list:
@@ -352,33 +389,9 @@ while not closed:
                 scale_multiplier = 3
                 change_resolution()
 
-
-
-
-
-        #print(event)
-
-
-    #update_screen()
-
-
-
-
-    #mouse = threading.Thread(target=mouse_pointer)
-    #mouse.start()
-
-
-    #show_fps(gameDisplay, clock)
-
-    #pygame.display.update()
-
     upscale = threading.Thread(target=upscale_screen)
     upscale.run()
-
     #cProfile.run('upscale.run()')
-    #upscale_screen()
-
-    #clock.tick(5)
     clock.tick(FPS)
 
 
