@@ -18,9 +18,17 @@ upscale_rez_w = 640
 upscale_rez_h = 360
 FPS = 120
 scale_multiplier = 1
-game_tick = 0.01
+game_tick = 0.1#0.01
 gameDisplay = pygame.Surface([640, 360])
 pygame.display.set_caption('Tower defence')
+enemy_list = []
+
+x = int(display_width * 0.5)
+y = int(display_height * 0.5)
+bullet_list = []
+
+FPS_FONT = pygame.font.SysFont("Verdana", 15)
+GOLDENROD = pygame.Color("goldenrod")
 
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -59,7 +67,7 @@ if monitor_info.current_w == 1920 and monitor_info.current_h == 1080:
 
 
 ###########################################
-#######         Map creation        #######
+#######         Tower creation        #######
 ###########################################
 tower_placeholder_list = []
 
@@ -127,7 +135,7 @@ def detect_bullet_colision():
         for e in enemy_list:
             for index, b in enumerate(bullet_list):
                 if pygame.sprite.collide_rect(b, e):
-                    print(pygame.sprite.collide_rect(b, e))
+                    #print(pygame.sprite.collide_rect(b, e))
                     e.health -= b.damage
                     bullet_list.pop(index)
                     if e.health <= 0:
@@ -183,16 +191,11 @@ def auto_shoot():
         time.sleep(0.1)
 
 
-x = int(display_width * 0.5)
-y = int(display_height * 0.5)
-bullet_list = []
 
-FPS_FONT = pygame.font.SysFont("Verdana", 15)
-GOLDENROD = pygame.Color("goldenrod")
 
 
 def show_fps(window, clock):
-    fps_overlay = FPS_FONT.render(str(clock.get_fps()), True, black)
+    fps_overlay = FPS_FONT.render(str(int(clock.get_fps())), True, black)
     window.blit(fps_overlay, (0, 0))
 
 
@@ -243,7 +246,6 @@ def get_mouse_position():
     mouse_y = mouse_y / scale_multiplier
     return mouse_x, mouse_y
 
-enemy_list = []
 
 def is_enemy_in_range():
     for t in tower_placeholder_list:
@@ -299,9 +301,9 @@ def tower_search_enemy():
             if t.level > 0:
                 detected_list = []
                 for e in enemy_list:
-                    print(e.posx)
-                    print(e.posy)
-                    print(math.sqrt(abs(int(t.posx - e.posx) * int(t.posx - e.posx) + int(t.posy - e.posy) * int(t.posy - e.posy))))
+                    #print(e.posx)
+                    #print(e.posy)
+                    #print(math.sqrt(abs(int(t.posx - e.posx) * int(t.posx - e.posx) + int(t.posy - e.posy) * int(t.posy - e.posy))))
                     if math.sqrt(abs(int(t.posx - e.posx) * int(t.posx - e.posx) + int(t.posy - e.posy) * int(t.posy - e.posy))) <= t.range: #pygame.sprite.collide_rect(t, e):
                         detected_list.append(e)
                         #print("detected")
