@@ -18,7 +18,7 @@ upscale_rez_w = 640
 upscale_rez_h = 360
 FPS = 120
 scale_multiplier = 1
-game_tick = 0.1#0.01
+game_tick = 0.01#0.01
 gameDisplay = pygame.Surface([640, 360])
 pygame.display.set_caption('Tower defence')
 enemy_list = []
